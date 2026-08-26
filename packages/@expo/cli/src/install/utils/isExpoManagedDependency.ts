@@ -5,7 +5,7 @@ type PackageJson = {
   repository?: string | { url?: string };
 };
 
-const EXPO_MANAGED_PACKAGE_EXCEPTIONS = new Set(['expo', 'jest-expo']);
+const EXPO_MANAGED_PACKAGE_NAMES = new Set(['expo', 'jest-expo']);
 
 function getRepositoryUrl(repository?: PackageJson['repository']): string | null {
   if (!repository) {
@@ -51,7 +51,7 @@ export async function isExpoManagedDependencyAsync(
   projectRoot: string,
   packageName: string
 ): Promise<boolean> {
-  if (packageName.startsWith('@expo/') || EXPO_MANAGED_PACKAGE_EXCEPTIONS.has(packageName)) {
+  if (packageName.startsWith('@expo/') || EXPO_MANAGED_PACKAGE_NAMES.has(packageName)) {
     return true;
   }
 
