@@ -238,6 +238,50 @@ describe(checkPackagesAsync, () => {
     expect(logIncorrectDependencies).toHaveBeenCalledWith(issues);
   });
 
+  it(`delegates only Expo packages when fixing with --expo-only`, async () => {
+    const issues: Awaited<ReturnType<typeof getVersionedDependenciesAsync>> = [
+      {
+        packageName: 'expo-sms',
+        packageType: 'dependencies',
+        expectedVersionOrRange: '~14.0.0',
+        actualVersion: '9.0.0',
+      },
+      {
+        packageName: 'react-native-reanimated',
+        packageType: 'dependencies',
+        expectedVersionOrRange: '~4.0.0',
+        actualVersion: '4.5.0',
+      },
+      {
+        packageName: 'jest-expo',
+        packageType: 'devDependencies',
+        expectedVersionOrRange: '~57.0.4',
+        actualVersion: '57.0.3',
+      },
+    ];
+    const packageManagerArguments = ['--ignore-scripts'];
+    const expoOnlyIssues = [issues[0]!, issues[2]!];
+
+    jest.mocked(getVersionedDependenciesAsync).mockResolvedValueOnce(issues);
+
+    await checkPackagesAsync('/', {
+      packages: [],
+      options: { fix: true, expoOnly: true },
+      // @ts-expect-error
+      packageManager: {},
+      packageManagerArguments,
+    });
+
+    expect(logIncorrectDependencies).toHaveBeenCalledWith(expoOnlyIssues);
+    expect(fixPackagesAsync).toHaveBeenCalledWith('/', {
+      packageManager: {},
+      packageManagerArguments,
+      packages: expoOnlyIssues,
+      sdkVersion: '45.0.0',
+      expoOnly: true,
+    });
+  });
+
   it(`delegates only the selected invalid package when fixing`, async () => {
     const selectedIssue: Awaited<ReturnType<typeof getVersionedDependenciesAsync>> = [
       {

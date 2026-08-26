@@ -26,7 +26,7 @@ export async function checkPackagesAsync(
   {
     packages,
     packageManager,
-    options: { fix, json },
+    options: { fix, json, expoOnly },
     packageManagerArguments,
   }: {
     /**
@@ -38,7 +38,7 @@ export async function checkPackagesAsync(
     packageManager: PackageManager.NodePackageManager;
 
     /** How the check should resolve */
-    options: Pick<Options, 'fix' | 'json'>;
+    options: Pick<Options, 'fix' | 'json' | 'expoOnly'>;
     /**
      * Extra parameters to pass to the `packageManager` when installing versioned packages.
      * @example ['--no-save']
@@ -63,7 +63,9 @@ export async function checkPackagesAsync(
     );
   }
 
-  const dependencies = await getVersionedDependenciesAsync(projectRoot, exp, pkg, packages);
+  const dependencies = (await getVersionedDependenciesAsync(projectRoot, exp, pkg, packages)).filter(
+    (dependency) => !expoOnly || isExpoDependency(dependency.packageName)
+  );
 
   if (!dependencies.length) {
     if (json) {
@@ -96,9 +98,19 @@ export async function checkPackagesAsync(
       packages: dependencies,
       packageManagerArguments,
       sdkVersion: exp.sdkVersion!,
+      expoOnly: !!expoOnly,
     });
   }
 
   // Exit with non-zero exit code if any of the dependencies are out of date.
   Log.exit(chalk.red('Found outdated dependencies'), 1);
+}
+
+function isExpoDependency(packageName: string) {
+  return (
+    packageName === 'expo' ||
+    packageName === 'jest-expo' ||
+    packageName.startsWith('expo-') ||
+    packageName.startsWith('@expo/')
+  );
 }
