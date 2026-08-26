@@ -8,6 +8,7 @@ import {
 import { confirmAsync } from '../../utils/prompts';
 import { checkPackagesAsync } from '../checkPackages';
 import { fixPackagesAsync } from '../fixPackages';
+import { isExpoManagedDependencyAsync } from '../utils/isExpoManagedDependency';
 
 jest.mock('../../log');
 
@@ -15,6 +16,10 @@ jest.mock('../../utils/prompts');
 
 jest.mock('../fixPackages', () => ({
   fixPackagesAsync: jest.fn(),
+}));
+
+jest.mock('../utils/isExpoManagedDependency', () => ({
+  isExpoManagedDependencyAsync: jest.fn(),
 }));
 
 jest.mock('../../start/doctor/dependencies/validateDependenciesVersions', () => ({
@@ -247,10 +252,10 @@ describe(checkPackagesAsync, () => {
         actualVersion: '9.0.0',
       },
       {
-        packageName: 'react-native-reanimated',
+        packageName: 'expo-speech-recognition',
         packageType: 'dependencies',
-        expectedVersionOrRange: '~4.0.0',
-        actualVersion: '4.5.0',
+        expectedVersionOrRange: '~1.0.0',
+        actualVersion: '0.9.0',
       },
       {
         packageName: 'jest-expo',
@@ -263,6 +268,9 @@ describe(checkPackagesAsync, () => {
     const expoOnlyIssues = [issues[0]!, issues[2]!];
 
     jest.mocked(getVersionedDependenciesAsync).mockResolvedValueOnce(issues);
+    jest.mocked(isExpoManagedDependencyAsync).mockImplementation(async (_projectRoot, packageName) =>
+      ['expo-sms', 'jest-expo'].includes(packageName)
+    );
 
     await checkPackagesAsync('/', {
       packages: [],
@@ -280,6 +288,7 @@ describe(checkPackagesAsync, () => {
       sdkVersion: '45.0.0',
       expoOnly: true,
     });
+    expect(isExpoManagedDependencyAsync).toHaveBeenCalledTimes(3);
   });
 
   it(`delegates only the selected invalid package when fixing`, async () => {

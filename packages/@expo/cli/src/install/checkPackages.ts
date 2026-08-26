@@ -14,6 +14,7 @@ import { joinWithCommasAnd } from '../utils/strings';
 import { debugEvent } from './events';
 import { fixPackagesAsync } from './fixPackages';
 import type { Options } from './resolveOptions';
+import { isExpoManagedDependencyAsync } from './utils/isExpoManagedDependency';
 
 /**
  * Handles `expo install --fix|check'.
@@ -63,9 +64,10 @@ export async function checkPackagesAsync(
     );
   }
 
-  const dependencies = (await getVersionedDependenciesAsync(projectRoot, exp, pkg, packages)).filter(
-    (dependency) => !expoOnly || isExpoDependency(dependency.packageName)
-  );
+  const incorrectDependencies = await getVersionedDependenciesAsync(projectRoot, exp, pkg, packages);
+  const dependencies = expoOnly
+    ? await filterExpoManagedDependenciesAsync(projectRoot, incorrectDependencies)
+    : incorrectDependencies;
 
   if (!dependencies.length) {
     if (json) {
@@ -106,13 +108,15 @@ export async function checkPackagesAsync(
   Log.exit(chalk.red('Found outdated dependencies'), 1);
 }
 
-function isExpoDependency(packageName: string) {
-  // Keep this list aligned with packages commonly installed via Expo SDK package recommendations.
-  return (
-    packageName === 'expo' ||
-    // Expo package with a non-standard prefix.
-    packageName === 'jest-expo' ||
-    packageName.startsWith('expo-') ||
-    packageName.startsWith('@expo/')
+async function filterExpoManagedDependenciesAsync(
+  projectRoot: string,
+  dependencies: Awaited<ReturnType<typeof getVersionedDependenciesAsync>>
+) {
+  const expoManaged = await Promise.all(
+    dependencies.map(async (dependency) =>
+      (await isExpoManagedDependencyAsync(projectRoot, dependency.packageName)) ? dependency : null
+    )
   );
+
+  return expoManaged.filter(Boolean) as typeof dependencies;
 }
