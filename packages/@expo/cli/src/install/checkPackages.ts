@@ -115,15 +115,15 @@ async function filterExpoManagedDependenciesAsync(
   projectRoot: string,
   dependencies: Awaited<ReturnType<typeof getVersionedDependenciesAsync>>
 ) {
-  const expoManagedCache = new Map<string, boolean>();
+  const expoManagedCache = new Map<string, Promise<boolean>>();
   const expoManaged = await Promise.all(
     dependencies.map(async (dependency) => {
-      const cached = expoManagedCache.get(dependency.packageName);
-      const isExpoManaged =
-        cached !== undefined
-          ? cached
-          : await isExpoManagedDependencyAsync(projectRoot, dependency.packageName);
-      expoManagedCache.set(dependency.packageName, isExpoManaged);
+      let cached = expoManagedCache.get(dependency.packageName);
+      if (!cached) {
+        cached = isExpoManagedDependencyAsync(projectRoot, dependency.packageName);
+        expoManagedCache.set(dependency.packageName, cached);
+      }
+      const isExpoManaged = await cached;
       return isExpoManaged ? dependency : null;
     })
   );
