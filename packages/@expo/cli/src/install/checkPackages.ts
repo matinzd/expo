@@ -109,6 +109,7 @@ export async function checkPackagesAsync(
 function isExpoDependency(packageName: string) {
   return (
     packageName === 'expo' ||
+    // Expo package with a non-standard prefix.
     packageName === 'jest-expo' ||
     packageName.startsWith('expo-') ||
     packageName.startsWith('@expo/')
