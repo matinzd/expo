@@ -31,10 +31,8 @@ function isExpoRepositoryUrl(repositoryUrl: string | null): boolean {
       return false;
     }
 
-    const [owner, repo] = pathname
-      .split('/')
-      .filter(Boolean)
-      .map((value) => value.replace(/\.git$/i, ''));
+    const [owner, rawRepo] = pathname.split('/').filter(Boolean);
+    const repo = rawRepo?.replace(/\.git$/i, '');
     return owner?.toLowerCase() === 'expo' && !!repo;
   } catch {
     const sshMatch = normalizedUrl.match(/^git@github\.com:([^/]+)\/([^/]+?)(?:\.git)?$/i);
