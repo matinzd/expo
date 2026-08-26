@@ -23,6 +23,11 @@ function isExpoRepositoryUrl(repositoryUrl: string | null): boolean {
     return false;
   }
 
+  // Support common npm repository URL formats:
+  // - https://github.com/expo/<repo>(.git)
+  // - git+https://github.com/expo/<repo>(.git)
+  // - ssh://git@github.com/expo/<repo>(.git)
+  // - git@github.com:expo/<repo>(.git)
   const normalizedUrl = repositoryUrl.replace(/^git\+/, '');
 
   try {
