@@ -107,6 +107,7 @@ export async function checkPackagesAsync(
 }
 
 function isExpoDependency(packageName: string) {
+  // Keep this list aligned with packages commonly installed via Expo SDK package recommendations.
   return (
     packageName === 'expo' ||
     // Expo package with a non-standard prefix.
