@@ -5,6 +5,7 @@ type PackageJson = {
   repository?: string | { url?: string };
 };
 
+// Explicit Expo-managed package names that don't use the @expo/* scope.
 const EXPO_MANAGED_PACKAGE_NAMES = new Set(['expo', 'jest-expo']);
 
 function getRepositoryUrl(repository?: PackageJson['repository']): string | null {
