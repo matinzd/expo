@@ -108,6 +108,9 @@ export async function checkPackagesAsync(
   Log.exit(chalk.red('Found outdated dependencies'), 1);
 }
 
+/**
+ * Keep only dependencies maintained by Expo for `--expo-only` checks/fixes.
+ */
 async function filterExpoManagedDependenciesAsync(
   projectRoot: string,
   dependencies: Awaited<ReturnType<typeof getVersionedDependenciesAsync>>

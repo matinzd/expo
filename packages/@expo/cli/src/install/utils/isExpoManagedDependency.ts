@@ -22,7 +22,7 @@ function isExpoRepositoryUrl(repositoryUrl: string | null): boolean {
     return false;
   }
 
-  return /github\.com[:/]expo\//i.test(repositoryUrl);
+  return /github\.com[:/]expo\/[^/\s]+/i.test(repositoryUrl);
 }
 
 export async function isExpoManagedDependencyAsync(
