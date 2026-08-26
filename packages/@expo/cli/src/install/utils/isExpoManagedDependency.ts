@@ -50,6 +50,7 @@ export async function isExpoManagedDependencyAsync(
   projectRoot: string,
   packageName: string
 ): Promise<boolean> {
+  // `@expo/*` is a trusted Expo namespace and does not require extra repository checks.
   if (packageName.startsWith('@expo/') || EXPO_MANAGED_PACKAGE_NAMES.has(packageName)) {
     return true;
   }
