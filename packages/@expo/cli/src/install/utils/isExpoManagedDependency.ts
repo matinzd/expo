@@ -22,7 +22,29 @@ function isExpoRepositoryUrl(repositoryUrl: string | null): boolean {
     return false;
   }
 
-  return /github\.com[:/]expo\/[^/\s]+/i.test(repositoryUrl);
+  const normalizedUrl = repositoryUrl.replace(/^git\+/, '');
+
+  try {
+    const { hostname, pathname } = new URL(normalizedUrl);
+    if (hostname.toLowerCase() !== 'github.com') {
+      return false;
+    }
+
+    const [owner, repo] = pathname
+      .split('/')
+      .filter(Boolean)
+      .map((value) => value.replace(/\.git$/i, ''));
+    return owner?.toLowerCase() === 'expo' && !!repo;
+  } catch {
+    const sshMatch = normalizedUrl.match(/^git@github\.com:([^/]+)\/([^/]+?)(?:\.git)?$/i);
+    if (!sshMatch) {
+      return false;
+    }
+
+    const owner = sshMatch[1]?.toLowerCase();
+    const repo = sshMatch[2];
+    return owner === 'expo' && !!repo;
+  }
 }
 
 export async function isExpoManagedDependencyAsync(

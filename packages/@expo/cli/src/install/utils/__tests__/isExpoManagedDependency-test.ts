@@ -37,6 +37,23 @@ describe(isExpoManagedDependencyAsync, () => {
     await expect(isExpoManagedDependencyAsync(projectRoot, 'expo-sms')).resolves.toBe(true);
   });
 
+  it('treats packages with Expo SSH repositories as Expo-managed', async () => {
+    vol.fromJSON(
+      {
+        'node_modules/expo-camera/package.json': JSON.stringify({
+          name: 'expo-camera',
+          repository: {
+            type: 'git',
+            url: 'git@github.com:expo/expo.git',
+          },
+        }),
+      },
+      projectRoot
+    );
+
+    await expect(isExpoManagedDependencyAsync(projectRoot, 'expo-camera')).resolves.toBe(true);
+  });
+
   it('does not treat similarly-named community packages as Expo-managed', async () => {
     vol.fromJSON(
       {
@@ -54,5 +71,22 @@ describe(isExpoManagedDependencyAsync, () => {
     await expect(isExpoManagedDependencyAsync(projectRoot, 'expo-speech-recognition')).resolves.toBe(
       false
     );
+  });
+
+  it('does not treat non-Expo owners as Expo-managed', async () => {
+    vol.fromJSON(
+      {
+        'node_modules/expo-custom/package.json': JSON.stringify({
+          name: 'expo-custom',
+          repository: {
+            type: 'git',
+            url: 'https://github.com/someuser/expo',
+          },
+        }),
+      },
+      projectRoot
+    );
+
+    await expect(isExpoManagedDependencyAsync(projectRoot, 'expo-custom')).resolves.toBe(false);
   });
 });
